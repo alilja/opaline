@@ -13,7 +13,7 @@ class Window:
         self.offset = 0
 
     def __len__(self):
-        return self.iterations # figure out the math for how much data needs to be collected
+        return (self.width - self.overlap) * (self.iterations - 1) + self.width
 
     def __iter__(self):
         self.offset = 0
