@@ -23,7 +23,6 @@ class InputFile:
         self.data = data_matrix[header_location+2:] #strip header
         # build channel data dictionary
         self.channel_data = dict((channel_name, list()) for channel_name, index in channel_indices.items())
-        self.rows = []
         for line, row_data in enumerate(self.data):
             if not row_data or row_data is None: break
             for name, index in channel_indices.items():

@@ -22,7 +22,10 @@ class TestWindow(unittest.TestCase):
 
 class TestInputFile(unittest.TestCase):
     def test_processing(self):
-        input_file = InputFile("")
+        input_file = InputFile("test/test_data.txt",{"sec":"time", "CH40":"bp", "CH46":"rr"})
+        self.assertEqual(len(input_file.data[0]),16)
+        self.assertEqual(len(input_file.channel_data["time"]),1)
+        self.assertEqual(input_file.channel_data["time"][0],0)
 
 if __name__ == '__main__':
     unittest.main()
