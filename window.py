@@ -13,6 +13,7 @@ class Window:
         self.offset = 0
 
     def __len__(self):
+        """ returns the number of elements in items that will be iterated over """
         return (self.width - self.overlap) * (self.iterations - 1) + self.width
 
     def __iter__(self):
@@ -26,4 +27,4 @@ class Window:
             self.start = self.offset - self.cursor
             raise StopIteration
         return self.items[self.start + self.offset - self.cursor:
-            self.width + self.start + self.offset - self.cursor] 
+            self.width + self.start + self.offset - self.cursor]

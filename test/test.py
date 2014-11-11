@@ -1,6 +1,7 @@
 import unittest
 
-from opaline.window import Window
+from window import Window
+from input_types import InputFile
 
 class TestWindow(unittest.TestCase):
     def test_width(self):
@@ -19,6 +20,9 @@ class TestWindow(unittest.TestCase):
         self.assertEqual(len(Window(range(0,100), width=3, overlap=2, iterations=6)), 8)  # odd window,  even overlap
         self.assertEqual(len(Window(range(0,100), width=4, overlap=2, iterations=4)), 10) # even window, even overlap
 
+class TestInputFile(unittest.TestCase):
+    def test_processing(self):
+        input_file = InputFile("")
 
 if __name__ == '__main__':
     unittest.main()

@@ -1,13 +1,15 @@
-from opaline.window import Window
+from window import Window
+from input_types import InputFile
 
 class Opaline:
-    def __init__(self, window):
-        self.window = window
+    def __init__(self, input_type, filename):
+        self.input_type = input_type
+        if input_type is "STREAM":
+            #self.data_object = stream()
+            pass
+        elif input_type is "FILE":
+            self.data_object = InputFile(filename,{"sec":"time", "CH40":"bp", "CH46":"rr"},separator="\t")
+        else:
+            raise ValueError, "Unknown input type \"%s\"." % input_type
 
-
-window = Window(range(0,100),overlap=9)
-print len(window)
-for n in window:
-    print len(n)
-    print n
-
+    

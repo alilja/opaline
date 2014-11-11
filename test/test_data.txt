@@ -1,0 +1,36 @@
+test data.acq
+1 msec/sample
+15 channels
+Z, X, NICO-R
+ohm
+RSP, X, RSPEC-R
+Volts
+NIBP
+mmHg
+Temp
+Volts
+dZ/dt, Y, NICO-R
+ohm/sec
+ECG, Y, RSPEC-R
+mV
+EDA, Y, PPGED-R
+microsiemens
+SKT B, Y, SKT2-R
+°C
+SBP
+mmHg
+DBP
+mmHg
+HR
+BPM
+dZ/dtmax
+ohm/sec
+MBP
+mmHg
+Respiration Rate
+BPM
+ECG R-R
+Seconds
+sec,CH1,CH2,CH5,CH6,CH13,CH14,CH15,CH16,CH40,CH41,CH42,CH43,CH44,CH45,CH46,
+,34700,34700,34700,34700,34700,34700,34700,34700,34700,34700,34700,34700,34700,34700,34700,
+0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
