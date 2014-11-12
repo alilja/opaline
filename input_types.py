@@ -5,8 +5,8 @@ class InputStream:
     pass
 
 class InputFile:
-    """ expects a filename, and a dict of strings where the keys are the channel names
-    in the file and the values are the human-readable names 
+    """ expects a filename, and a dict of strings where the keys are the human-readble channel 
+    names and the values are the channel names in the text file. 
 
     InputFile.data is the raw data, with no processing of any kind (including type changes)
 
@@ -16,11 +16,13 @@ class InputFile:
     def __init__(self, filename, channels, separator=","):
         with open(filename) as f:
             data_matrix = list(csv.reader(f,delimiter=separator))
-        header_location = self._find_header(data_matrix)
+
         # find the channel info
+        header_location = self._find_header(data_matrix)
         channel_info = data_matrix[header_location]
-        channel_indices = dict((channel_name, channel_info.index(channel_key)) for channel_key, channel_name in channels.items())
+        channel_indices = dict((channel_name, channel_info.index(channel_key)) for channel_name, channel_key in channels.items())
         self.data = data_matrix[header_location+2:] #strip header
+
         # build channel data dictionary
         self.channel_data = dict((channel_name, list()) for channel_name, index in channel_indices.items())
         for line, row_data in enumerate(self.data):
