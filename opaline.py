@@ -1,4 +1,5 @@
 from yaml import load
+from scipy.interpolate import interp1d
 
 from window import Window
 from input_types import InputFile
@@ -43,14 +44,19 @@ class Opaline:
         for index, time in enumerate(channel_data['time']):
             if time % 1 == 0 and time != 0:
                 output.append((
-                    channel_data['time'][start_index:index+1],
-                    channel_data['bp'][start_index:index+1],
-                    channel_data['rr'][start_index:index+1],
+                    channel_data['time'][start_index:index],
+                    channel_data['bp'][start_index:index],
+                    channel_data['rr'][start_index:index],
                     ))
                 start_index = index
         return output
 
+    # see shift test for how to shift data for window
+    # should be easy
+
 if __name__ == "__main__":
     op = Opaline(filename="data/brs_250.txt", separator='\t')
     seconds = op._build_second_data(op.data_object.channel_data)
-    print(seconds[1][2])
+    for data in seconds:
+        print data[0],data[1],data[2]
+

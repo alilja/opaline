@@ -1,5 +1,5 @@
 class Window:
-    def __init__(self, items, start=0, width=10, overlap=9, iterations=6, reset_start=False):
+    def __init__(self, items=None, start=0, width=10, overlap=9, iterations=6, reset_start=False):
         self.items = items
         self.width = width
         self.overlap = overlap
