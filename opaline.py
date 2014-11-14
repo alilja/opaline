@@ -1,5 +1,5 @@
 from yaml import load
-from scipy.interpolate import UnivariateSpline
+from scipy.interpolate import InterpolatedUnivariateSpline
 
 from window import Window
 from input_types import InputFile
@@ -39,8 +39,6 @@ class Opaline:
         else:
             raise ValueError, "Unknown input type \"%s\"." % input_type
 
-        return self.data_object
-
     def _build_second_data(self, channel_data):
         """ returns a list of tuples, where every tuple contains the channel data
         for one second. That is, each tuple is exactly one second long. 
@@ -79,7 +77,7 @@ class Opaline:
                 all_items = [item for sublist in window for item in sublist]
                 x = range(len(all_items))
                 print(len(x))
-                spline = UnivariateSpline(x, all_items, k=3)
+                spline = InterpolatedUnivariateSpline(x, all_items, k=3)
                 # spline!
                 # correlate!
                 print spline
