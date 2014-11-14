@@ -16,7 +16,7 @@ class Opaline:
             if "input_type" in self.config_info.keys():
                 input_type = self.config_info['input_type'].upper()
             else:
-                raise ValueError, "No input type found."
+                raise ValueError, "No input type found." 
 
         if input_type == "STREAM":
             #self.data_object = stream()
@@ -39,6 +39,11 @@ class Opaline:
             raise ValueError, "Unknown input type \"%s\"." % input_type
 
     def _build_second_data(self, channel_data):
+        """ returns a list of tuples, where every tuple contains the channel data
+        for one second. That is, each tuple is exactly one second long. 
+
+        seconds[0][1] will return the blood pressure data for the first second,
+        seconds[1][1] will return it for the second, etc. """
         start_index = 0
         output = []
         for index, time in enumerate(channel_data['time']):
@@ -51,12 +56,33 @@ class Opaline:
                 start_index = index
         return output
 
+    def calculate(self, second_data, width):
+        start = 0
+        shift_window = Window(overlap=1, width=width, iterations=3)
+        while start+len(shift_window) <= len(second_data):
+            unshifted = [x[1] for x in second_data[start:start+width]]
+            print unshifted
+            shift_window.start = 0
+            shift_window.items = [x[2] for x in second_data[start:start+len(shift_window)]]
+            for window in shift_window:
+                # spline!
+                # correlate!
+                print window
+            start += 1
+            print "---"
+
     # see shift test for how to shift data for window
     # should be easy
 
 if __name__ == "__main__":
     op = Opaline(filename="data/brs_250.txt", separator='\t')
     seconds = op._build_second_data(op.data_object.channel_data)
-    for data in seconds:
-        print data[0],data[1],data[2]
-
+    data = [([0,1,2,3],["a","b","c","d"],[0,1,2,3]),
+             ([4,5,6,7],["e","f","g","h"],[4,5,6,7]),
+             ([8,9,10,11],["i","j","k","l"],[8,9,10,11]),
+             ([12,13,14,15],["m","n","o","p"],[12,13,14,15]),
+             ([0,1,2,3],["a","b","c","d"],[0,1,2,31]),
+             ([4,5,6,7],["e","f","g","h"],[4,5,6,72]),
+             ([8,9,10,11],["i","j","k","l"],[8,9,10,113]),
+             ([12,13,14,15],["m","n","o","p"],[12,13,14,154])]
+    op.calculate(data, width=2)
