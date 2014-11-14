@@ -6,3 +6,7 @@ channels:
     bp: CH40
     rr: CH46
 
+window:
+    width: 10
+    overlap: 9
+    iterations: 6

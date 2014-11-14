@@ -1,5 +1,5 @@
 from yaml import load
-from scipy.interpolate import interp1d
+from scipy.interpolate import UnivariateSpline
 
 from window import Window
 from input_types import InputFile
@@ -8,6 +8,7 @@ from pprint import pprint
 
 class Opaline:
     def __init__(self, input_type="", **kwargs):
+        self.config_info = None
         with open(kwargs.get('config',"config.yaml")) as f:
             self.config_info = load(f)
 
@@ -56,20 +57,31 @@ class Opaline:
                 start_index = index
         return output
 
-    def calculate(self, second_data, width):
+    def calculate(self, second_data, **kwargs):
+        window_config = self.config_info.get('window')
+        if window_config == None: window_config = {}
+        width = window_config.get('width',kwargs.get('width'))
+        overlap = window_config.get('overlap',kwargs.get('overlap'))
+        iterations = window_config.get('iterations',kwargs.get('iterations'))
+        assert width, "Could not find width."
+        assert overlap, "Could not find overlap."
+        assert iterations, "Could not find iterations."
+
         start = 0
-        shift_window = Window(overlap=1, width=width, iterations=3)
+        shift_window = Window(width=width, iterations=iterations, overlap=overlap, reset_start=True)
         while start+len(shift_window) <= len(second_data):
             unshifted = [x[1] for x in second_data[start:start+width]]
-            print unshifted
             shift_window.start = 0
             shift_window.items = [x[2] for x in second_data[start:start+len(shift_window)]]
             for window in shift_window:
+                all_items = [item for sublist in window for item in sublist]
+                x = range(len(all_items))
+                print(len(x))
+                spline = UnivariateSpline(x, all_items, k=3)
                 # spline!
                 # correlate!
-                print window
+                print spline
             start += 1
-            print "---"
 
     # see shift test for how to shift data for window
     # should be easy
@@ -85,4 +97,4 @@ if __name__ == "__main__":
              ([4,5,6,7],["e","f","g","h"],[4,5,6,72]),
              ([8,9,10,11],["i","j","k","l"],[8,9,10,113]),
              ([12,13,14,15],["m","n","o","p"],[12,13,14,154])]
-    op.calculate(data, width=2)
+    op.calculate(seconds)
