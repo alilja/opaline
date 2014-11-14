@@ -39,6 +39,8 @@ class Opaline:
         else:
             raise ValueError, "Unknown input type \"%s\"." % input_type
 
+        return self.data_object
+
     def _build_second_data(self, channel_data):
         """ returns a list of tuples, where every tuple contains the channel data
         for one second. That is, each tuple is exactly one second long. 
