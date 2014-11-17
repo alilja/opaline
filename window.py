@@ -7,9 +7,10 @@ class Window:
         self.start = start
         self.reset_start = reset_start
 
-        self.cursor = width-overlap
+        self.cursor = width - overlap
         if self.cursor <= 0:
-            raise ValueError, "Overlap ({0}) is greater than or equal to width ({1}).".format(overlap, width)
+            raise ValueError("Overlap ({0}) is greater than or equal to width ({1})."
+                             .format(overlap, width))
         self.offset = 0
 
     def __len__(self):
@@ -18,7 +19,8 @@ class Window:
 
     def __iter__(self):
         self.offset = 0
-        if self.reset_start: self.start = 0
+        if self.reset_start:
+            self.start = 0
         return self
 
     def next(self):
@@ -26,5 +28,7 @@ class Window:
         if(self.offset > self.iterations * self.cursor): 
             self.start = self.offset - self.cursor
             raise StopIteration
-        return self.items[self.start + self.offset - self.cursor:
-            self.width + self.start + self.offset - self.cursor]
+        return self.items[
+            self.start + self.offset - self.cursor:
+            self.width + self.start + self.offset - self.cursor
+        ]

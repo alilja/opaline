@@ -30,7 +30,7 @@ class Opaline:
                 if "input_file" in self.config_info.keys():
                     filename = self.config_info['input_file']
                 else:
-                    raise ValueError
+                    raise ValueError("No ``input_file`` found.")
 
             self.data_object = InputFile(
                 filename=filename,
@@ -40,7 +40,7 @@ class Opaline:
                 separator=kwargs.get('separator', ','),
             )
         else:
-            raise ValueError
+            raise ValueError("No ``input_type`` found.")
 
     def _build_second_data(self, channel_data):
         """ returns a list of tuples, where every tuple contains the channel
@@ -75,7 +75,7 @@ class Opaline:
         shift_window = Window(width=width, iterations=iterations,
                               overlap=overlap, reset_start=True)
         while start + len(shift_window) <= len(second_data):
-            # unshifted = [x[1] for x in second_data[start:start + width]]
+            unshifted = [x[1] for x in second_data[start:start + width]]
             shift_window.start = 0
             shift_window.items = [x[2] for x in second_data[start:start + len(shift_window)]]
             for window in shift_window:
@@ -94,12 +94,12 @@ class Opaline:
 if __name__ == "__main__":
     op = Opaline(filename="data/brs_250.txt", separator='\t')
     seconds = op._build_second_data(op.data_object.channel_data)
-    data = [([0,1,2,3], ["a","b","c","d"],[0,1,2,3]),
+    """data = [([0,1,2,3], ["a","b","c","d"],[0,1,2,3]),
              ([4,5,6,7],["e","f","g","h"],[4,5,6,7]),
              ([8,9,10,11],["i","j","k","l"],[8,9,10,11]),
              ([12,13,14,15],["m","n","o","p"],[12,13,14,15]),
              ([0,1,2,3],["a","b","c","d"],[0,1,2,31]),
              ([4,5,6,7],["e","f","g","h"],[4,5,6,72]),
              ([8,9,10,11],["i","j","k","l"],[8,9,10,113]),
-             ([12,13,14,15],["m","n","o","p"],[12,13,14,154])]
+             ([12,13,14,15],["m","n","o","p"],[12,13,14,154])]"""
     op.calculate(seconds)
