@@ -1,14 +1,13 @@
+from pprint import pprint
+
 from yaml import load
 from scipy.interpolate import InterpolatedUnivariateSpline
 
 from window import Window
 from input_types import InputFile
 
-from pprint import pprint
-
 
 class Opaline:
-
     def __init__(self, input_type="", **kwargs):
         self.config_info = None
         with open(kwargs.get('config', "config.yaml")) as f:
@@ -60,6 +59,9 @@ class Opaline:
                 start_index = index
         return output
 
+    def _function_to_list(self, function, length):
+        return [function(i) for i in range(0, length)]
+
     def calculate(self, second_data, **kwargs):
         window_config = self.config_info.get('window')
         if window_config is None:
@@ -81,11 +83,13 @@ class Opaline:
             for window in shift_window:
                 all_items = [item for sublist in window for item in sublist]
                 x = range(len(all_items))
-                print(len(x))
                 spline = InterpolatedUnivariateSpline(x, all_items, k=3)
+
+                numbers = self._function_to_list(spline, len(all_items))
+                print(numbers[0:10])
                 # spline!
                 # correlate!
-                print spline
+                return spline
             start += 1
 
     # see shift test for how to shift data for window
