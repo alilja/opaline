@@ -34,8 +34,7 @@ class Opaline:
             self.data_object = InputFile(
                 filename=filename,
                 # load first from kwargs, otherwise default to config
-                channels=kwargs.get('channels',
-                                    self.config_info.get('channels')),
+                channels=kwargs.get('channels', self.config_info.get('channels')),
                 separator=kwargs.get('separator', ','),
             )
         else:
@@ -59,10 +58,13 @@ class Opaline:
                 start_index = index
         return output
 
-    def _function_to_list(self, function, length):
-        return [function(i) for i in range(0, length)]
-
     def calculate(self, second_data, **kwargs):
+        def get_second_tuples(data_position, start, num):
+            return [item[data_position] for item in second_data[start:start + num]]
+
+        def collapse_second_tuples(tuples):
+            return [item for sublist in tuples for item in sublist]
+
         window_config = self.config_info.get('window')
         if window_config is None:
             window_config = {}
@@ -74,36 +76,62 @@ class Opaline:
         assert iterations, "Could not find iterations."
 
         start = 0
-        shift_window = Window(width=width, iterations=iterations,
-                              overlap=overlap, reset_start=True)
-        while start + len(shift_window) <= len(second_data):
-            unshifted = [x[1] for x in second_data[start:start + width]]
-            shift_window.start = 0
-            shift_window.items = [x[2] for x in second_data[start:start + len(shift_window)]]
-            for window in shift_window:
-                all_items = [item for sublist in window for item in sublist]
-                x = range(len(all_items))
-                spline = InterpolatedUnivariateSpline(x, all_items, k=3)
+        shift_window = Window(
+            width=width,
+            iterations=iterations,
+            overlap=overlap,
+            reset_start=True
+        )
 
-                numbers = self._function_to_list(spline, len(all_items))
-                print(numbers[0:10])
-                # spline!
-                # correlate!
-                return spline
-            start += 1
+        # then compare them
 
-    # see shift test for how to shift data for window
-    # should be easy
+        # this gets ``width`` number of tuples for bp data, representing
+        # ``width`` seconds of that data. defaults to 10 seconds, so 10
+        # tuples. then it collapses it into a single list so we can spline
+        # it down the line.
+        unshifted = collapse_second_tuples(get_second_tuples(
+            data_position=1,
+            start=start,
+            num=width,
+        ))
+        # does the same, but gets ``len(shift_window)`` tuples
+        # by default this is 15, to cover the overlap required
+        all_shifted = get_second_tuples(
+            data_position=2,
+            start=start,
+            num=len(shift_window)
+        )
 
-if __name__ == "__main__":
-    op = Opaline(filename="data/brs_250.txt", separator='\t')
-    seconds = op._build_second_data(op.data_object.channel_data)
-    """data = [([0,1,2,3], ["a","b","c","d"],[0,1,2,3]),
-             ([4,5,6,7],["e","f","g","h"],[4,5,6,7]),
-             ([8,9,10,11],["i","j","k","l"],[8,9,10,11]),
-             ([12,13,14,15],["m","n","o","p"],[12,13,14,15]),
-             ([0,1,2,3],["a","b","c","d"],[0,1,2,31]),
-             ([4,5,6,7],["e","f","g","h"],[4,5,6,72]),
-             ([8,9,10,11],["i","j","k","l"],[8,9,10,113]),
-             ([12,13,14,15],["m","n","o","p"],[12,13,14,154])]"""
-    op.calculate(seconds)
+        shift_window.start = 0
+        shift_window.items = all_shifted
+        for windowed_data in shift_window:
+            shifted = collapse_second_tuples(windowed_data)
+            print(len(shifted))
+            #print "---"
+            #all_items = window #[item for sublist in window for item in sublist]
+            #x = range(len(all_items))
+            #spline = InterpolatedUnivariateSpline(x, all_items, k=3)
+
+            #numbers = self._function_to_list(spline, len(all_items))
+            # spline!
+            # correlate!
+            #plt.plot(unshifted)
+            #plt.plot(spline(x))
+            #return spline
+            break
+
+
+
+
+#if __name__ == "__main__":
+op = Opaline(filename="data/brs_250.txt", separator='\t')
+seconds = op._build_second_data(op.data_object.channel_data)
+"""data = [([0,1,2,3], ["a","b","c","d"],[0,1,2,3]),
+         ([4,5,6,7],["e","f","g","h"],[4,5,6,7]),
+         ([8,9,10,11],["i","j","k","l"],[8,9,10,11]),
+         ([12,13,14,15],["m","n","o","p"],[12,13,14,15]),
+         ([0,1,2,3],["a","b","c","d"],[0,1,2,31]),
+         ([4,5,6,7],["e","f","g","h"],[4,5,6,72]),
+         ([8,9,10,11],["i","j","k","l"],[8,9,10,113]),
+         ([12,13,14,15],["m","n","o","p"],[12,13,14,154])]"""
+op.calculate(seconds)
