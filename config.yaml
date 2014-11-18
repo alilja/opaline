@@ -1,6 +1,8 @@
 input_type: file
 input_file: data/brs_250.txt
 
+shift_channel: bp
+
 channels:
     time: sec
     bp: CH40

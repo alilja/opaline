@@ -50,17 +50,17 @@ class Opaline:
         output = []
         for index, time in enumerate(channel_data['time']):
             if time % 1 == 0 and time != 0:
-                output.append((
-                    channel_data['time'][start_index:index],
-                    channel_data['bp'][start_index:index],
-                    channel_data['rr'][start_index:index],
-                ))
+                output.append({
+                    'time': channel_data['time'][start_index:index],
+                    'bp': channel_data['bp'][start_index:index],
+                    'rr': channel_data['rr'][start_index:index],
+                })
                 start_index = index
         return output
 
     def calculate(self, second_data, **kwargs):
-        def get_second_tuples(data_position, start, num):
-            return [item[data_position] for item in second_data[start:start + num]]
+        def get_second_tuples(channel_name, start, num):
+            return [item[channel_name] for item in second_data[start:start + num]]
 
         def collapse_second_tuples(tuples):
             return [item for sublist in tuples for item in sublist]
@@ -83,21 +83,19 @@ class Opaline:
             reset_start=True
         )
 
-        # then compare them
-
         # this gets ``width`` number of tuples for bp data, representing
         # ``width`` seconds of that data. defaults to 10 seconds, so 10
         # tuples. then it collapses it into a single list so we can spline
         # it down the line.
         unshifted = collapse_second_tuples(get_second_tuples(
-            data_position=1,
+            channel_name='bp',
             start=start,
             num=width,
         ))
         # does the same, but gets ``len(shift_window)`` tuples
         # by default this is 15, to cover the overlap required
         all_shifted = get_second_tuples(
-            data_position=2,
+            channel_name='rr',
             start=start,
             num=len(shift_window)
         )
