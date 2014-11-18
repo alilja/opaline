@@ -33,7 +33,7 @@ class InputFile:
         for line, row_data in enumerate(self.data):
             if not row_data or row_data is None or row_data == "":
                 if line + 1 < len(self.data):
-                    if self.data[line + 1] is "" or None:
+                    if self.data[line + 1] == "" or is None:
                         break
             for name, index in channel_indices.items():
                 if index >= len(row_data):
