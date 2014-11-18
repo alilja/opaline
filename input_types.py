@@ -33,7 +33,7 @@ class InputFile:
         for line, row_data in enumerate(self.data):
             if not row_data or row_data is None or row_data == "":
                 if line + 1 < len(self.data):
-                    if self.data[line + 1] == "" or is None:
+                    if self.data[line + 1] == "" or self.data[line + 1] is None:
                         break
             for name, index in channel_indices.items():
                 if index >= len(row_data):
@@ -47,7 +47,6 @@ class InputFile:
                 return i
         else:
             raise ValueError("Flag \"%s\" not found. Header missing?" % flag)
-
 
     # make this grab the right timestamp when it
     # gets the bp and rr
