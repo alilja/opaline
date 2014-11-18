@@ -1,7 +1,7 @@
 from pprint import pprint
 
 from yaml import load
-from scipy.interpolate import InterpolatedUnivariateSpline
+#from scipy.interpolate import InterpolatedUnivariateSpline
 
 from window import Window
 from input_types import InputFile
@@ -36,6 +36,9 @@ class Opaline:
                 # load first from kwargs, otherwise default to config
                 channels=kwargs.get('channels', self.config_info.get('channels')),
                 separator=kwargs.get('separator', ','),
+            )
+            self.data_object.channel_data = self.data_object.eliminate_repeats(
+                self.data_object.channel_data
             )
         else:
             raise ValueError("No ``input_type`` found.")
@@ -123,13 +126,5 @@ class Opaline:
 
 #if __name__ == "__main__":
 op = Opaline(filename="data/brs_250.txt", separator='\t')
-seconds = op._build_second_data(op.data_object.channel_data)
-"""data = [([0,1,2,3], ["a","b","c","d"],[0,1,2,3]),
-         ([4,5,6,7],["e","f","g","h"],[4,5,6,7]),
-         ([8,9,10,11],["i","j","k","l"],[8,9,10,11]),
-         ([12,13,14,15],["m","n","o","p"],[12,13,14,15]),
-         ([0,1,2,3],["a","b","c","d"],[0,1,2,31]),
-         ([4,5,6,7],["e","f","g","h"],[4,5,6,72]),
-         ([8,9,10,11],["i","j","k","l"],[8,9,10,113]),
-         ([12,13,14,15],["m","n","o","p"],[12,13,14,154])]"""
-op.calculate(seconds)
+"""seconds = op._build_second_data(op.data_object.channel_data)
+op.calculate(seconds)"""

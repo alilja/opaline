@@ -32,11 +32,12 @@ class InputFile:
         self.channel_data = dict((channel_name, list()) for channel_name, index in channel_indices.items())
         for line, row_data in enumerate(self.data):
             if not row_data or row_data is None or row_data == "":
-                pass
+                if line + 1 < len(self.data):
+                    if self.data[line + 1] is "" or None:
+                        break
             for name, index in channel_indices.items():
                 if index >= len(row_data):
-                    break  # TODO: do a check to only do this if we're at the end of the file
-                    # if we're not throw an error
+                    break
                 value = float(row_data[index].strip())
                 self.channel_data[name].append(value)
 
@@ -47,5 +48,17 @@ class InputFile:
         else:
             raise ValueError("Flag \"%s\" not found. Header missing?" % flag)
 
-    def eliminate_repeats():
-        pass
+
+    # make this grab the right timestamp when it
+    # gets the bp and rr
+    def eliminate_repeats(self, channel_data):
+        output = {}
+        for key in channel_data.keys():
+            output[key] = []
+        for key, data in channel_data.items():
+            previous_value = 0
+            for item in data:
+                if item != previous_value:
+                    previous_value = item
+                    output[key].append(item)
+        return output
