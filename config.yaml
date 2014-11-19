@@ -1,5 +1,5 @@
 input_type: file
-input_file: data/brs_250.txt
+filename: data/brs_500.txt
 
 shift_channel: bp
 

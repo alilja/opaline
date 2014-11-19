@@ -48,16 +48,19 @@ class InputFile:
         else:
             raise ValueError("Flag \"%s\" not found. Header missing?" % flag)
 
-    # make this grab the right timestamp when it
-    # gets the bp and rr
-    def eliminate_repeats(self, channel_data):
+    def build_timestamps(self, channel_data, search_channels, time_channel="time"):
         output = {}
-        for key in channel_data.keys():
+        # build the right keys
+        search_channels = [key for key in search_channels if key != time_channel]
+        for key in search_channels:
             output[key] = []
-        for key, data in channel_data.items():
-            previous_value = 0
-            for item in data:
-                if item != previous_value:
-                    previous_value = item
-                    output[key].append(item)
+
+        for key, column in channel_data.items():
+            if key != time_channel:
+                previous_data_point = -1
+                for line, data_point in enumerate(column):
+                    if data_point != previous_data_point:
+                        # make a tuple containing the data and its timestamp
+                        output[key].append((data_point, channel_data[time_channel][line]))
+                        previous_data_point = data_point
         return output
