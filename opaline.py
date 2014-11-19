@@ -39,6 +39,20 @@ class Opaline:
                 search_channels=channels.keys(),
             )
 
+    def _get_data_for_time(self, start, length, timestamp_data=None):
+        if timestamp_data is None:
+            timestamp_data = self.timestamps
+
+        output = {}
+        for key in timestamp_data.keys():
+            output[key] = []
+
+        for key, column in timestamp_data.items():
+            for data, time in column:
+                if time >= start and time <= start + length:
+                    output[key].append((data, time))
+        return output
+
 
 """capture the rr and bp along with timestamps
 and then when you need the time do a lookup for the time:
@@ -56,6 +70,7 @@ only grab the first four points """
 
 
 #if __name__ == "__main__":
-op = Opaline(separator='\t')
+op = Opaline()
+print op._get_data_for_time(0, 10)
 """seconds = op._build_second_data(op.data_object.channel_data)
 op.calculate(seconds)"""

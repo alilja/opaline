@@ -48,7 +48,10 @@ class InputFile:
         else:
             raise ValueError("Flag \"%s\" not found. Header missing?" % flag)
 
-    def build_timestamps(self, channel_data, search_channels, time_channel="time"):
+    def build_timestamps(self, search_channels, channel_data=None, time_channel="time"):
+        if channel_data is None:
+            channel_data = self.channel_data
+
         output = {}
         # build the right keys
         search_channels = [key for key in search_channels if key != time_channel]

@@ -1,5 +1,6 @@
 input_type: file
 filename: data/brs_500.txt
+separator: "\t"
 
 shift_channel: bp
 
