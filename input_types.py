@@ -60,7 +60,7 @@ class InputFile:
 
         for key, column in channel_data.items():
             if key != time_channel:
-                previous_data_point = -1
+                previous_data_point = 0
                 for line, data_point in enumerate(column):
                     if data_point != previous_data_point:
                         # make a tuple containing the data and its timestamp

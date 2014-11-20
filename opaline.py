@@ -3,7 +3,7 @@ from pprint import pprint
 from yaml import load
 # from scipy.interpolate import InterpolatedUnivariateSpline
 
-from window import Window
+from window import TimeWindow
 from input_types import InputFile
 
 
@@ -58,47 +58,36 @@ class Opaline:
         if timestamp_data is None:
             timestamp_data = self.timestamps
 
-        window = Window(
+        window = TimeWindow(
             width=self.window_options['width'],
             overlap=self.window_options['overlap'],
             iterations=self.window_options['iterations'],
         )
-        output = []
+        print window.size()
 
-        longest_key = max(
-            timestamp_data,
-            key=lambda x: len(set(timestamp_data[x]))
-        )
         shortest_key = min(
             timestamp_data,
             key=lambda x: len(set(timestamp_data[x]))
         )
 
-        i = 0
-        while i + len(window) < len(timestamp_data[shortest_key]):
+        start_time = 0
+        while start_time + window.size() < len(timestamp_data[shortest_key]):
             unshifted_data = self._get_data_for_time(
-                i,
+                start_time,
                 self.window_options['width'],
                 timestamp_data
             )['bp']
+
             window.items = self._get_data_for_time(
-                i,
-                len(window),
+                start_time,
+                window.size(),  # by default this returns 15
                 timestamp_data,
             )['rr']
-            print(len(window))
-            print "Unshifted: %s" % unshifted_data
+            window.start = start_time  # to account for the shifting in start data
             for shifted_data in window:
-                print len(shifted_data)
+                print shifted_data
             print "---"
-            i += window.cursor
-
-        #for i in range(timestamp_data[longest_key]):
-        #    row = [data for j, data in enumerate(timestamp_data) if j == i]
-        #    if i + len(window) > len(timestamp_data[shortest_key]):
-        #        print("Window length exceeded list entries.")
-        #        break
-
+            start_time += window.cursor
         # go through each list and grab the data that fits within the timestamps
 
 
