@@ -19,8 +19,10 @@ class Opaline:
         with open(kwargs.get('config', "config.yaml")) as f:
             self.config_info = load(f)
 
+        self.window_options = get_option('window')
         self.input_type = get_option('input_type').upper()
         self.data_object = None
+
         self.timestamps = None
         if self.input_type == "STREAM":
             # self.data_object = stream()
@@ -30,7 +32,6 @@ class Opaline:
 
             self.data_object = InputFile(
                 filename=get_option('filename'),
-                # load first from kwargs, otherwise default to config
                 channels=channels,
                 separator=get_option('separator'),
             )
@@ -53,6 +54,53 @@ class Opaline:
                     output[key].append((data, time))
         return output
 
+    def calculate(self, timestamp_data=None):
+        if timestamp_data is None:
+            timestamp_data = self.timestamps
+
+        window = Window(
+            width=self.window_options['width'],
+            overlap=self.window_options['overlap'],
+            iterations=self.window_options['iterations'],
+        )
+        output = []
+
+        longest_key = max(
+            timestamp_data,
+            key=lambda x: len(set(timestamp_data[x]))
+        )
+        shortest_key = min(
+            timestamp_data,
+            key=lambda x: len(set(timestamp_data[x]))
+        )
+
+        i = 0
+        while i + len(window) < len(timestamp_data[shortest_key]):
+            unshifted_data = self._get_data_for_time(
+                i,
+                self.window_options['width'],
+                timestamp_data
+            )['bp']
+            window.items = self._get_data_for_time(
+                i,
+                len(window),
+                timestamp_data,
+            )['rr']
+            print(len(window))
+            print "Unshifted: %s" % unshifted_data
+            for shifted_data in window:
+                print len(shifted_data)
+            print "---"
+            i += window.cursor
+
+        #for i in range(timestamp_data[longest_key]):
+        #    row = [data for j, data in enumerate(timestamp_data) if j == i]
+        #    if i + len(window) > len(timestamp_data[shortest_key]):
+        #        print("Window length exceeded list entries.")
+        #        break
+
+        # go through each list and grab the data that fits within the timestamps
+
 
 """capture the rr and bp along with timestamps
 and then when you need the time do a lookup for the time:
@@ -69,8 +117,6 @@ time   bp
 only grab the first four points """
 
 
-#if __name__ == "__main__":
-op = Opaline()
-print op._get_data_for_time(0, 10)
-"""seconds = op._build_second_data(op.data_object.channel_data)
-op.calculate(seconds)"""
+if __name__ == "__main__":
+    op = Opaline()
+    op.calculate()
