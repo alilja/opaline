@@ -40,6 +40,17 @@ class Opaline:
                 search_channels=channels.keys(),
             )
 
+            shifted_channel = get_option('shifted_channel')
+            unshifted_channel = ""
+            for key in channels.keys():
+                if key != shifted_channel and key != "time":
+                    unshifted_channel = key
+                    break
+            self.calculate(
+                shifted_channel=shifted_channel,
+                unshifted_channel=unshifted_channel,
+            )
+
     def _get_data_for_time(self, start, length, timestamp_data=None):
         if timestamp_data is None:
             timestamp_data = self.timestamps
@@ -54,7 +65,7 @@ class Opaline:
                     output[key].append((data, time))
         return output
 
-    def calculate(self, timestamp_data=None):
+    def calculate(self, timestamp_data=None, shifted_channel='bp', unshifted_channel='rr'):
         if timestamp_data is None:
             timestamp_data = self.timestamps
 
@@ -76,13 +87,13 @@ class Opaline:
                 start_time,
                 self.window_options['width'],
                 timestamp_data
-            )['bp']
+            )[unshifted_channel]
 
             window.items = self._get_data_for_time(
                 start_time,
                 window.size(),  # by default this returns 15
                 timestamp_data,
-            )['rr']
+            )[shifted_channel]
             window.start = start_time  # to account for the shifting in start data
             for shifted_data in window:
                 print shifted_data
@@ -108,4 +119,3 @@ only grab the first four points """
 
 if __name__ == "__main__":
     op = Opaline()
-    op.calculate()

@@ -2,12 +2,12 @@ input_type: file
 filename: data/brs_500.txt
 separator: "\t"
 
-shift_channel: bp
-
 channels:
     time: sec
     bp: CH40
     rr: CH46
+
+shifted_channel: bp
 
 window:
     width: 10
