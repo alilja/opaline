@@ -1,7 +1,7 @@
 from pprint import pprint
 
 from yaml import load
-# from scipy.interpolate import InterpolatedUnivariateSpline
+from scipy.interpolate import interp1d
 
 from window import TimeWindow
 from input_types import InputFile
@@ -66,6 +66,13 @@ class Opaline:
         return output
 
     def calculate(self, timestamp_data=None, shifted_channel='bp', unshifted_channel='rr'):
+        def get_spline(channel_data):
+            return interp1d(
+                [data[1] for data in channel_data],
+                [data[0] for data in channel_data],
+                kind='cubic',
+            )
+
         if timestamp_data is None:
             timestamp_data = self.timestamps
 
@@ -74,20 +81,19 @@ class Opaline:
             overlap=self.window_options['overlap'],
             iterations=self.window_options['iterations'],
         )
-        print window.size()
-
         shortest_key = min(
             timestamp_data,
             key=lambda x: len(set(timestamp_data[x]))
         )
 
         start_time = 0
-        while start_time + window.size() < len(timestamp_data[shortest_key]):
+        while start_time + window.size() < len(timestamp_data[shortest_key]) + 1:
             unshifted_data = self._get_data_for_time(
                 start_time,
                 self.window_options['width'],
                 timestamp_data
             )[unshifted_channel]
+            unshifted_spline = get_spline(unshifted_data)
 
             window.items = self._get_data_for_time(
                 start_time,
@@ -95,27 +101,11 @@ class Opaline:
                 timestamp_data,
             )[shifted_channel]
             window.start = start_time  # to account for the shifting in start data
+
             for shifted_data in window:
-                print shifted_data
-            print "---"
+                shifted_spline = get_spline(shifted_data)
             start_time += window.cursor
         # go through each list and grab the data that fits within the timestamps
-
-
-"""capture the rr and bp along with timestamps
-and then when you need the time do a lookup for the time:
-run through the list and grab all the points until we have them
-within the certain time window. ie. if we need points from 0 - 3:
-
-time   bp
-0.1    23
-1.2    50
-2.5    34
-2.9    40
-3.2    11
-
-only grab the first four points """
-
 
 if __name__ == "__main__":
     op = Opaline()
