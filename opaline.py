@@ -104,6 +104,7 @@ class Opaline:
 
             for shifted_data in window:
                 shifted_spline = get_spline(shifted_data)
+                print shifted_spline([0,1,2,3,4])
             start_time += window.cursor
         # go through each list and grab the data that fits within the timestamps
 
