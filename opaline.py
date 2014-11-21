@@ -2,6 +2,7 @@ from pprint import pprint
 
 from yaml import load
 from scipy.interpolate import interp1d
+from scipy.stats.stats import pearsonr
 
 from window import TimeWindow
 from input_types import InputFile
@@ -104,7 +105,11 @@ class Opaline:
 
             for shifted_data in window:
                 shifted_spline = get_spline(shifted_data)
-                print shifted_spline([0,1,2,3,4])
+                correlation_r = pearsonr(
+                    unshifted_spline([data[1] for data in unshifted_data]),
+                    shifted_spline([data[1] for data in shifted_data])
+                )
+                print correlation_r
             start_time += window.cursor
         # go through each list and grab the data that fits within the timestamps
 
