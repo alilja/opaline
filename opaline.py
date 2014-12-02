@@ -73,7 +73,7 @@ class Opaline:
                 if key != shifted_channel and key != "time":
                     unshifted_channel = key
                     break
-            self.calculate(
+            print self.calculate(
                 shifted_channel=shifted_channel,
                 unshifted_channel=unshifted_channel,
             )
@@ -92,25 +92,27 @@ class Opaline:
                     output[key].append((data, time))
         return output
 
+    @staticmethod
+    def _get_spline(channel_data):
+        return interp1d(
+            [data[1] for data in channel_data],
+            [data[0] for data in channel_data],
+            kind='cubic',
+        )
+
+    @staticmethod
+    def _bound_range(low_bound, high_bound, required_items):
+        """Returns a list of numbers within a certain range,
+        with a ``required_items`` number of items."""
+        step = float(high_bound - low_bound) / float(required_items)
+        out = []
+        i = 0
+        while i < required_items:
+            out.append(step * i + low_bound)
+            i += 1
+        return out
+
     def calculate(self, timestamp_data=None, shifted_channel='bp', unshifted_channel='rr'):
-        def get_spline(channel_data):
-            return interp1d(
-                [data[1] for data in channel_data],
-                [data[0] for data in channel_data],
-                kind='cubic',
-            )
-
-        def bound_range(low_bound, high_bound, required_items):
-            """Returns a list of numbers within a certain range,
-            with a ``required_items`` number of items."""
-            step = float(high_bound - low_bound) / float(required_items)
-            out = []
-            i = 0
-            while i < required_items:
-                out.append(step * i + low_bound)
-                i += 1
-            return out
-
         if timestamp_data is None:
             timestamp_data = self.timestamps
 
@@ -124,35 +126,60 @@ class Opaline:
             key=lambda x: len(set(timestamp_data[x]))
         )
 
+        brs = []
         start_time = 0
-        while start_time + window.size() < len(timestamp_data[shortest_key]) + 1:
+        while start_time + window.size() < len(timestamp_data[shortest_key]) + 1: #BROKEN
+            # first, get the splines and their correlation
+
+            # get the data for the unshifted channel
             unshifted_data = self._get_data_for_time(
                 start_time,
                 window.width,
                 timestamp_data,
             )[unshifted_channel]
-            unshifted_spline = get_spline(unshifted_data)
+            # calculate the spline for it
+            unshifted_spline = Opaline._get_spline(unshifted_data)
 
+            # load the window with the right number of items
+            # it needs to shift the other channel
             window.items = self._get_data_for_time(
                 start_time,
                 window.size(),  # by default this returns 15
                 timestamp_data,
             )[shifted_channel]
-            window.start = start_time  # to account for the shifting in start data
+            # the data shifts -- make sure the window is shifting with it
+            window.start = start_time
 
-            iteration_data = []
+            highest_r = 0
+            splines = []
             for shifted_data in window:
-                shifted_spline = get_spline(shifted_data)
+                shifted_spline = Opaline._get_spline(shifted_data)
                 # if the window is 10 seconds, sample the spline 10 times
                 # This is a 1 Hz sample rate
-                correlation_r = pearsonr(
-                    unshifted_spline(bound_range(unshifted_data[0][1], unshifted_data[-1][1], window.width)),
-                    shifted_spline(bound_range(shifted_data[0][1], shifted_data[-1][1], window.width))
+                correlation_r, two_tail_p = pearsonr(
+                    unshifted_spline(Opaline._bound_range(
+                        unshifted_data[0][1],
+                        unshifted_data[-1][1],
+                        window.width
+                    )),
+                    shifted_spline(Opaline._bound_range(
+                        shifted_data[0][1],
+                        shifted_data[-1][1],
+                        window.width
+                    ))
                 )
-                iteration_data.append(
-                    (correlation_r, unshifted_spline, shifted_spline)
-                )
+                if two_tail_p <= 0.01 and correlation_r > 0:
+                    print correlation_r, two_tail_p
+                    if correlation_r > highest_r:
+                        splines = [unshifted_spline, shifted_spline]
+                        highest_r = correlation_r
+
+            if len(splines) == 0:
+                brs.append(None)
+            else:
+                brs.append((highest_r, splines))
             start_time += window.cursor
+        return brs
 
 
 if __name__ == "__main__":

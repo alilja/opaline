@@ -1,5 +1,5 @@
 input_type: file
-filename: data/brs_500.txt
+filename: data/brs_250.txt
 separator: "\t"
 
 channels:
