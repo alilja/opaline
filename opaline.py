@@ -1,5 +1,3 @@
-from pprint import pprint
-
 from yaml import load
 from scipy.interpolate import interp1d
 from scipy.stats.stats import pearsonr
@@ -102,6 +100,17 @@ class Opaline:
                 kind='cubic',
             )
 
+        def bound_range(low_bound, high_bound, required_items):
+            """Returns a list of numbers within a certain range,
+            with a ``required_items`` number of items."""
+            step = float(high_bound - low_bound) / float(required_items)
+            out = []
+            i = 0
+            while i < required_items:
+                out.append(step * i + low_bound)
+                i += 1
+            return out
+
         if timestamp_data is None:
             timestamp_data = self.timestamps
 
@@ -119,8 +128,8 @@ class Opaline:
         while start_time + window.size() < len(timestamp_data[shortest_key]) + 1:
             unshifted_data = self._get_data_for_time(
                 start_time,
-                self.window_options['width'],
-                timestamp_data
+                window.width,
+                timestamp_data,
             )[unshifted_channel]
             unshifted_spline = get_spline(unshifted_data)
 
@@ -131,15 +140,20 @@ class Opaline:
             )[shifted_channel]
             window.start = start_time  # to account for the shifting in start data
 
+            iteration_data = []
             for shifted_data in window:
                 shifted_spline = get_spline(shifted_data)
+                # if the window is 10 seconds, sample the spline 10 times
+                # This is a 1 Hz sample rate
                 correlation_r = pearsonr(
-                    unshifted_spline([data[1] for data in unshifted_data]),
-                    shifted_spline([data[1] for data in shifted_data])
+                    unshifted_spline(bound_range(unshifted_data[0][1], unshifted_data[-1][1], window.width)),
+                    shifted_spline(bound_range(shifted_data[0][1], shifted_data[-1][1], window.width))
                 )
-                print correlation_r
+                iteration_data.append(
+                    (correlation_r, unshifted_spline, shifted_spline)
+                )
             start_time += window.cursor
-        # go through each list and grab the data that fits within the timestamps
+
 
 if __name__ == "__main__":
     op = Opaline("config.yaml")
