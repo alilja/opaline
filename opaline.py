@@ -9,22 +9,50 @@ from input_types import InputFile
 
 
 class Opaline:
-    def __init__(self, input_type="", **kwargs):
+    def __init__(self, config_file=None, **kwargs):
+        """Note that one of the channels must have a human-readable name of "time" with
+        timestamps correlated with the data. This is used to build the lookup table of
+        when cardiovascular events occured.
+
+        Args:
+            config_info (string): The path to the configuration file.
+            window (dict): Configuration for the moving window. See window.py for more
+                information.
+            input_type (string): ``STREAM`` or ``FILE`` depending on whether or not
+                you want real-time or static data. Arguments after this point are
+                broken down by input type.
+
+            FILE:
+            filename (string): The path to the data file.
+            separator (string): The separator for columns in the file. For example,
+                in CSV file, it would be a comma. Defaults to a comma.
+            channels (dict): A dict, where keys are the human-readable name of the
+                channel and the value is the actual column heading in the data file.
+            shifted_channel (string): The human-readable name of the channel that will
+                be shifted by the window."""
+
         def get_option(option_name):
+            """Looks for an option first form **kwargs and then from the config file.
+
+            Args:
+                option_name (string): the name of the kwarg or line in the config file.
+
+            Returns:
+                The value of that argument."""
             option = kwargs.get(option_name, self.config_info.get(option_name))
             if option is None:
                 raise ValueError("No ``{0}`` found.".format(option_name))
             return option
 
         self.config_info = None
-        with open(kwargs.get('config', "config.yaml")) as f:
+        with open(config_file) as f:
             self.config_info = load(f)
 
         self.window_options = get_option('window')
-        self.input_type = get_option('input_type').upper()
         self.data_object = None
 
         self.timestamps = None
+        self.input_type = get_option('input_type').upper()
         if self.input_type == "STREAM":
             # self.data_object = stream()
             pass
@@ -114,4 +142,4 @@ class Opaline:
         # go through each list and grab the data that fits within the timestamps
 
 if __name__ == "__main__":
-    op = Opaline()
+    op = Opaline("config.yaml")
