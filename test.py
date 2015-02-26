@@ -1,8 +1,10 @@
 import unittest
 import csv
+from random import uniform
 
 from window import TimeWindow
 from input_types import InputFile
+from opaline import Opaline
 
 
 class TestTimeWindow(unittest.TestCase):

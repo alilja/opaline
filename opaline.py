@@ -67,16 +67,12 @@ class Opaline:
                 search_channels=channels.keys(),
             )
 
-            shifted_channel = get_option('shifted_channel')
-            unshifted_channel = ""
+            self.shifted_channel = get_option('shifted_channel')
+            self.unshifted_channel = ""
             for key in channels.keys():
-                if key != shifted_channel and key != "time":
-                    unshifted_channel = key
+                if key != self.shifted_channel and key != "time":
+                    self.unshifted_channel = key
                     break
-            print self.calculate(
-                shifted_channel=shifted_channel,
-                unshifted_channel=unshifted_channel,
-            )
 
     def _get_data_for_time(self, start, length, timestamp_data=None):
         if timestamp_data is None:
@@ -184,3 +180,7 @@ class Opaline:
 
 if __name__ == "__main__":
     op = Opaline("config.yaml")
+    print op.calculate(
+        shifted_channel=op.shifted_channel,
+        unshifted_channel=op.unshifted_channel,
+    )
