@@ -1,12 +1,52 @@
 import csv
+import time
+
+from libbiopacndt_py import Client
 
 
-class InputStream:
+class _Input(object):
+    def build_timestamps(self, search_channels, channel_data=None, time_channel="time"):
+        if channel_data is None:
+            channel_data = self.channel_data
+
+        output = {}
+        # build the right keys
+        search_channels = [key for key in search_channels if key != time_channel]
+        for key in search_channels:
+            output[key] = []
+
+        for key, column in channel_data.items():
+            if key != time_channel:
+                previous_data_point = None
+                for line, data_point in enumerate(column):
+                    if data_point != previous_data_point:
+                        # make a tuple containing the data and its timestamp
+                        output[key].append((data_point, channel_data[time_channel][line]))
+                        previous_data_point = data_point
+        return output
+
+
+class InputStream(_Input):
     """ a stream loads data into the buffer until it has enough, then calls correlations """
-    pass
+    def __init__(self, channels, server, port, lookup):
+        self.channels = channels  # bp, rr, etc
+        self.remote_channels = [bio_chan for local_chan, bio_chan in lookup.items() if local_chan in channels]
+        self.lookup = lookup
+
+        self.client = Client(self.remote_channels, server, port)
+        self.client.connect()
+
+    def get_data(self, size, channels):
+        data = {channel: [] for channel in channels}
+        for channel in channels:
+            remote_channel = self.lookup[channel]
+            for i in range(size):
+                data[channel].append(self.client.poll(remote_channel).next())
+        return data
 
 
-class InputFile:
+
+class InputFile(_Input):
     """ expects a filename, and a dict of strings where the keys are the human-readble channel
     names and the values are the channel names in the text file.
 
@@ -47,23 +87,3 @@ class InputFile:
                 return i
         else:
             raise ValueError("Flag \"%s\" not found. Header missing?" % flag)
-
-    def build_timestamps(self, search_channels, channel_data=None, time_channel="time"):
-        if channel_data is None:
-            channel_data = self.channel_data
-
-        output = {}
-        # build the right keys
-        search_channels = [key for key in search_channels if key != time_channel]
-        for key in search_channels:
-            output[key] = []
-
-        for key, column in channel_data.items():
-            if key != time_channel:
-                previous_data_point = None
-                for line, data_point in enumerate(column):
-                    if data_point != previous_data_point:
-                        # make a tuple containing the data and its timestamp
-                        output[key].append((data_point, channel_data[time_channel][line]))
-                        previous_data_point = data_point
-        return output

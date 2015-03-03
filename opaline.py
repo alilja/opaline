@@ -3,10 +3,10 @@ from scipy.interpolate import interp1d
 from scipy.stats.stats import pearsonr
 
 from window import TimeWindow
-from input_types import InputFile
+from input_types import InputFile, InputStream
 
 
-class Opaline:
+class Opaline(object):
     def __init__(self, config_file=None, **kwargs):
         """Note that one of the channels must have a human-readable name of "time" with
         timestamps correlated with the data. This is used to build the lookup table of
@@ -27,9 +27,14 @@ class Opaline:
             channels (dict): A dict, where keys are the human-readable name of the
                 channel and the value is the actual column heading in the data file.
             shifted_channel (string): The human-readable name of the channel that will
-                be shifted by the window."""
+                be shifted by the window.
 
-        def get_option(option_name):
+            STREAM:
+            manifest_location (string): Location of the manifest_lookup.yaml file.
+            server (string): The server address.
+            port (int): The port number."""
+
+        def _get_option(option_name):
             """Looks for an option first form **kwargs and then from the config file.
 
             Args:
@@ -46,33 +51,50 @@ class Opaline:
         with open(config_file) as f:
             self.config_info = load(f)
 
-        self.window_options = get_option('window')
+        self.window_options = _get_option('window')
         self.data_object = None
+        channels = _get_option('channels')
 
-        self.timestamps = None
-        self.input_type = get_option('input_type').upper()
+        self.input_type = _get_option('input_type').upper()
         if self.input_type == "STREAM":
-            # self.data_object = stream()
-            pass
-        elif self.input_type == "FILE":
-            channels = get_option('channels')
+            try:
+                manifest_lookup_file = _get_option('manifest_location')
+            except ValueError:
+                manifest_lookup_file = "config/manifest_lookup.yaml"
+            with open(manifest_lookup_file) as f:
+                manifest_lookup = load(f)
 
-            self.data_object = InputFile(
-                filename=get_option('filename'),
-                channels=channels,
-                separator=get_option('separator'),
+            self.data_object = InputStream(
+                channels,
+                _get_option('server'),
+                _get_option('port'),
+                manifest_lookup,
             )
 
+            print self.data_object.get_data(10, ["rr", "bp"])
+        elif self.input_type == "FILE":
+
+            self.data_object = InputFile(
+                filename=_get_option('filename'),
+                channels=channels,
+                separator=_get_option('separator'),
+            )
+
+            # get data in timestamp format
             self.timestamps = self.data_object.build_timestamps(
                 search_channels=channels.keys(),
             )
+            print self.timestamps
 
-            self.shifted_channel = get_option('shifted_channel')
+            # greedily find the unshifted channel
+            self.shifted_channel = _get_option('shifted_channel')
             self.unshifted_channel = ""
             for key in channels.keys():
                 if key != self.shifted_channel and key != "time":
                     self.unshifted_channel = key
                     break
+
+
 
     def _get_data_for_time(self, start, length, timestamp_data=None):
         if timestamp_data is None:
@@ -179,8 +201,8 @@ class Opaline:
 
 
 if __name__ == "__main__":
-    op = Opaline("config.yaml")
-    print op.calculate(
+    op = Opaline("config/config.yaml")
+    """print op.calculate(
         shifted_channel=op.shifted_channel,
         unshifted_channel=op.unshifted_channel,
-    )
+    )"""

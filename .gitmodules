@@ -1,0 +1,3 @@
+[submodule "libbiopacndt_py"]
+	path = libbiopacndt_py
+	url = git@github.com:alilja/libbiopacndt_py.git
