@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 from yaml import load
 from scipy.interpolate import interp1d
 from scipy.stats.stats import pearsonr
@@ -57,12 +58,22 @@ class Opaline(object):
 
         self.input_type = _get_option('input_type').upper()
         if self.input_type == "STREAM":
+            # get the manifest map that matches biopacd channels with
+            # human-readable channel names
+
             try:
                 manifest_lookup_file = _get_option('manifest_location')
             except ValueError:
                 manifest_lookup_file = "config/manifest_lookup.yaml"
             with open(manifest_lookup_file) as f:
                 manifest_lookup = load(f)
+
+            # remove time from input channels since we're doing that
+            # manually
+            try:
+                del channels["time"]
+            except ValueError:
+                pass
 
             self.data_object = InputStream(
                 channels,
@@ -71,7 +82,8 @@ class Opaline(object):
                 manifest_lookup,
             )
 
-            print self.data_object.get_data(10, ["rr", "bp"])
+            self._stream_spline(channels)
+
         elif self.input_type == "FILE":
 
             self.data_object = InputFile(
@@ -93,8 +105,6 @@ class Opaline(object):
                 if key != self.shifted_channel and key != "time":
                     self.unshifted_channel = key
                     break
-
-
 
     def _get_data_for_time(self, start, length, timestamp_data=None):
         if timestamp_data is None:
@@ -130,6 +140,20 @@ class Opaline(object):
             i += 1
         return out
 
+    def _stream_spline(self, channels):
+        # steps here: fill the buffer up as far as needed
+        # then build the timestamp data
+        # then pass that to the spliner
+        # do this until quit
+        import time
+        time.sleep(3)
+        data = self.data_object.get_data(50, channels)
+        self.timestamps = self.data_object.build_timestamps(
+            search_channels=channels.keys(),
+            channel_data=data,
+        )
+        print self.timestamps
+
     def calculate(self, timestamp_data=None, shifted_channel='bp', unshifted_channel='rr'):
         if timestamp_data is None:
             timestamp_data = self.timestamps
@@ -146,6 +170,7 @@ class Opaline(object):
 
         brs = []
         start_time = 0
+        # this while loop needs to be broken out
         while start_time + window.size() < len(timestamp_data[shortest_key]) + 1: #BROKEN
             # first, get the splines and their correlation
 

@@ -38,12 +38,17 @@ class InputStream(_Input):
 
     def get_data(self, size, channels):
         data = {channel: [] for channel in channels}
-        for channel in channels:
-            remote_channel = self.lookup[channel]
-            for i in range(size):
-                data[channel].append(self.client.poll(remote_channel).next())
+        data["time"] = []
+        initial_time = time.time()
+        for i in range(size):
+            data_time = 0
+            for channel in channels:
+                item = self.client.poll(self.lookup[channel]).next()
+                data[channel].append(item[0])
+                data_time += item[1]
+            # append the average times
+            data["time"].append(data_time / 2)
         return data
-
 
 
 class InputFile(_Input):
